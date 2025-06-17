@@ -77,6 +77,22 @@ src/
 - ユーザー: maki (maki.nkgw@gmail.com)
 - `.gitignore`でnode_modules等を除外済み
 
+## GitHub Pages デプロイ
+- **デプロイ方法**: GitHub Pages（カスタムワークフロー無効）
+- **デプロイ設定**: Settings > Pages > Source: "Deploy from a branch" > Branch: `gh-pages`
+- **ビルドコマンド**: `npm run build`
+- **デプロイディレクトリ**: `dist/`
+- **ベースパス**: `/chugaku-juken-shakai/` (vite.config.tsで設定済み)
+
+### 手動デプロイ手順
+```bash
+# ビルド
+npm run build
+
+# gh-pagesブランチにデプロイ（手動またはGitHub Action）
+# GitHubのSettings > Pagesでブランチからデプロイを選択
+```
+
 ## 今後の拡張予定
 - 問題数の追加
 - 新しい問題形式

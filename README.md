@@ -80,16 +80,46 @@ src/
 
 ## デプロイ
 
-このプロジェクトはGitHub Actionsを使用して自動的にGitHub Pagesにデプロイされます。
+このプロジェクトはGitHub Pagesにデプロイされています。
 
-### 手動デプロイ
+### GitHub Pages設定
+
+1. GitHubリポジトリの「Settings」→「Pages」
+2. Source: "Deploy from a branch"を選択
+3. Branch: `gh-pages`を選択
+4. フォルダ: `/ (root)`を選択
+
+### 手動デプロイ手順
 
 ```bash
-# ビルド
+# 1. プロジェクトをビルド
 npm run build
 
-# GitHub Pagesにデプロイ
-# （GitHub ActionsのWorkflowが自動実行）
+# 2. gh-pagesブランチにデプロイ（以下のいずれかの方法）
+
+# 方法A: gh-pages パッケージを使用（推奨）
+npx gh-pages -d dist
+
+# 方法B: 手動でgh-pagesブランチを作成・更新
+git checkout --orphan gh-pages
+git rm -rf .
+cp -r dist/* .
+git add .
+git commit -m "Deploy to GitHub Pages"
+git push origin gh-pages
+git checkout main
+```
+
+### 依存関係の追加（gh-pagesパッケージ使用時）
+
+```bash
+# gh-pagesパッケージをインストール
+npm install --save-dev gh-pages
+
+# package.jsonにデプロイスクリプトを追加
+# "scripts": {
+#   "deploy": "npm run build && gh-pages -d dist"
+# }
 ```
 
 ## ライセンス
