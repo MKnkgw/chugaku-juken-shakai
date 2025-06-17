@@ -74,6 +74,24 @@ src/
 5. 結果画面で得点と解説を確認
 6. 必要に応じて不正解問題のみを復習
 
+## デモ
+
+🌐 **[ライブデモを見る](https://maki.github.io/chugaku-juken-shakai/)**
+
+## デプロイ
+
+このプロジェクトはGitHub Actionsを使用して自動的にGitHub Pagesにデプロイされます。
+
+### 手動デプロイ
+
+```bash
+# ビルド
+npm run build
+
+# GitHub Pagesにデプロイ
+# （GitHub ActionsのWorkflowが自動実行）
+```
+
 ## ライセンス
 
 MIT License
