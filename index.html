@@ -1,13 +1,1052 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中学受験 社会科問題</title>
-  </head>
-  <body>
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+    <script type="text/babel">
+        const { useState, useCallback } = React;
+
+        // 問題データベース
+        const questionBank = [
+            {
+                id: '1',
+                category: '地理',
+                subcategory: '日本の地形',
+                difficulty: 'basic',
+                question: '日本で一番高い山は何ですか？',
+                type: 'multiple-choice',
+                options: ['富士山', '北岳', '奥穂高岳', '間ノ岳'],
+                answer: 0,
+                explanation: '富士山は標高3,776mで日本で一番高い山です。静岡県と山梨県にまたがっています。',
+                points: 1
+            },
+            {
+                id: '2',
+                category: '地理',
+                subcategory: '日本の気候',
+                difficulty: 'standard',
+                question: '日本の気候に大きな影響を与える海流で、暖流はどれですか？',
+                type: 'multiple-choice',
+                options: ['黒潮', '親潮', 'リマン海流', '対馬海流'],
+                answer: 0,
+                explanation: '黒潮（日本海流）は太平洋側を北上する暖流で、日本の気候を温暖にしています。',
+                points: 2
+            },
+            {
+                id: '3',
+                category: '歴史',
+                subcategory: '古代',
+                difficulty: 'basic',
+                question: '邪馬台国の女王として有名な人物は（　　　）です。',
+                type: 'fill-in-blank',
+                answer: '卑弥呼',
+                explanation: '卑弥呼は3世紀頃の邪馬台国の女王で、中国の史書「魏志倭人伝」に記録されています。',
+                points: 1
+            },
+            {
+                id: '4',
+                category: '歴史',
+                subcategory: '平安時代',
+                difficulty: 'standard',
+                question: '平安京が作られたのは何年ですか？',
+                type: 'multiple-choice',
+                options: ['784年', '794年', '804年', '814年'],
+                answer: 1,
+                explanation: '平安京は794年に桓武天皇によって建設されました。「鳴くよ（794）うぐいす平安京」という語呂合わせで覚えられます。',
+                points: 2
+            },
+            {
+                id: '5',
+                category: '公民',
+                subcategory: '日本国憲法',
+                difficulty: 'basic',
+                question: '日本国憲法の三大原則に含まれないものはどれですか？',
+                type: 'multiple-choice',
+                options: ['国民主権', '基本的人権の尊重', '平和主義', '議院内閣制'],
+                answer: 3,
+                explanation: '日本国憲法の三大原則は「国民主権」「基本的人権の尊重」「平和主義」です。議院内閣制は統治機構の仕組みです。',
+                points: 2
+            },
+            {
+                id: '6',
+                category: '地理',
+                subcategory: '世界の国々',
+                difficulty: 'advanced',
+                question: '世界で一番面積が大きい国はロシアである。',
+                type: 'true-false',
+                answer: 1,
+                explanation: 'ロシアは世界最大の面積を持つ国で、約1,707万平方キロメートルです。',
+                points: 1
+            },
+            {
+                id: '7',
+                category: '歴史',
+                subcategory: '戦国時代',
+                difficulty: 'standard',
+                question: '1600年の関ヶ原の戦いで勝利したのは（　　　）です。',
+                type: 'fill-in-blank',
+                answer: '徳川家康',
+                explanation: '徳川家康が石田三成らの西軍を破り、その後江戸幕府を開きました。',
+                points: 2
+            },
+            {
+                id: '8',
+                category: '公民',
+                subcategory: '政治制度',
+                difficulty: 'advanced',
+                question: '衆議院議員の任期は何年ですか？',
+                type: 'multiple-choice',
+                options: ['3年', '4年', '5年', '6年'],
+                answer: 1,
+                explanation: '衆議院議員の任期は4年です（ただし解散により短縮される場合があります）。参議院議員は6年です。',
+                points: 3
+            },
+            {
+                id: '9',
+                category: '地理',
+                subcategory: '日本の地形',
+                difficulty: 'standard',
+                question: '日本列島を4つの大きな島に分けた時、面積が2番目に大きい島はどれですか？',
+                type: 'multiple-choice',
+                options: ['本州', '北海道', '九州', '四国'],
+                answer: 1,
+                explanation: '日本の4つの大きな島の面積順は、本州、北海道、九州、四国です。',
+                points: 2
+            },
+            {
+                id: '10',
+                category: '地理',
+                subcategory: '日本の川',
+                difficulty: 'basic',
+                question: '日本で一番長い川は（　　　）川です。',
+                type: 'fill-in-blank',
+                answer: '信濃',
+                explanation: '信濃川は長野県から新潟県に流れる川で、全長367kmと日本で最も長い川です。',
+                points: 1
+            }
+        ];
+
+        // クイズロジック
+        function useQuiz() {
+            const [currentSession, setCurrentSession] = useState(null);
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+            const startQuiz = useCallback((options = {}) => {
+                let filteredQuestions = [...questionBank];
+
+                if (options.category) {
+                    filteredQuestions = filteredQuestions.filter(q => q.category === options.category);
+                }
+                
+                if (options.difficulty) {
+                    filteredQuestions = filteredQuestions.filter(q => q.difficulty === options.difficulty);
+                }
+
+                const questionCount = Math.min(options.questionCount || 10, filteredQuestions.length);
+                const selectedQuestions = filteredQuestions
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, questionCount);
+
+                const session = {
+                    id: Date.now().toString(),
+                    questions: selectedQuestions,
+                    answers: new Array(selectedQuestions.length).fill(null),
+                    startTime: new Date(),
+                    maxScore: selectedQuestions.reduce((sum, q) => sum + q.points, 0)
+                };
+
+                setCurrentSession(session);
+                setCurrentQuestionIndex(0);
+            }, []);
+
+            const answerQuestion = useCallback((answer) => {
+                if (!currentSession) return;
+
+                const updatedAnswers = [...currentSession.answers];
+                updatedAnswers[currentQuestionIndex] = answer;
+
+                setCurrentSession({
+                    ...currentSession,
+                    answers: updatedAnswers
+                });
+            }, [currentSession, currentQuestionIndex]);
+
+            const nextQuestion = useCallback(() => {
+                if (!currentSession) return;
+                
+                if (currentQuestionIndex < currentSession.questions.length - 1) {
+                    setCurrentQuestionIndex(currentQuestionIndex + 1);
+                }
+            }, [currentSession, currentQuestionIndex]);
+
+            const previousQuestion = useCallback(() => {
+                if (currentQuestionIndex > 0) {
+                    setCurrentQuestionIndex(currentQuestionIndex - 1);
+                }
+            }, [currentQuestionIndex]);
+
+            const finishQuiz = useCallback(() => {
+                if (!currentSession) return null;
+
+                const results = currentSession.questions.map((question, index) => {
+                    const userAnswer = currentSession.answers[index];
+                    const correctAnswer = question.answer;
+                    const isCorrect = userAnswer === correctAnswer;
+
+                    return {
+                        questionId: question.id,
+                        isCorrect,
+                        userAnswer,
+                        correctAnswer
+                    };
+                });
+
+                const score = results.reduce((sum, result, index) => {
+                    return sum + (result.isCorrect ? currentSession.questions[index].points : 0);
+                }, 0);
+
+                const correctAnswers = results.filter(r => r.isCorrect).length;
+
+                const quizResult = {
+                    sessionId: currentSession.id,
+                    score,
+                    maxScore: currentSession.maxScore,
+                    percentage: Math.round((score / currentSession.maxScore) * 100),
+                    correctAnswers,
+                    totalQuestions: currentSession.questions.length,
+                    results
+                };
+
+                setCurrentSession(null);
+                setCurrentQuestionIndex(0);
+
+                return quizResult;
+            }, [currentSession]);
+
+            const getCurrentQuestion = useCallback(() => {
+                if (!currentSession) return null;
+                return currentSession.questions[currentQuestionIndex] || null;
+            }, [currentSession, currentQuestionIndex]);
+
+            const isLastQuestion = currentSession ? currentQuestionIndex === currentSession.questions.length - 1 : false;
+            const isFirstQuestion = currentQuestionIndex === 0;
+            const progress = currentSession ? ((currentQuestionIndex + 1) / currentSession.questions.length) * 100 : 0;
+
+            return {
+                currentSession,
+                currentQuestionIndex,
+                startQuiz,
+                answerQuestion,
+                nextQuestion,
+                previousQuestion,
+                finishQuiz,
+                getCurrentQuestion,
+                isLastQuestion,
+                isFirstQuestion,
+                progress
+            };
+        }
+
+        // クイズ設定コンポーネント
+        function QuizSetup({ onStartQuiz }) {
+            const [category, setCategory] = useState('');
+            const [difficulty, setDifficulty] = useState('');
+            const [questionCount, setQuestionCount] = useState(5);
+
+            const handleStart = () => {
+                onStartQuiz({
+                    category: category || undefined,
+                    difficulty: difficulty || undefined,
+                    questionCount
+                });
+            };
+
+            return React.createElement('div', {
+                style: {
+                    maxWidth: '500px',
+                    margin: '0 auto',
+                    padding: '30px',
+                    textAlign: 'center'
+                }
+            }, [
+                React.createElement('h1', {
+                    key: 'title',
+                    style: { 
+                        marginBottom: '30px',
+                        color: '#333',
+                        fontSize: '28px'
+                    }
+                }, '中学受験 社会科問題'),
+
+                React.createElement('div', {
+                    key: 'setup',
+                    style: {
+                        backgroundColor: '#f9f9f9',
+                        padding: '30px',
+                        borderRadius: '10px',
+                        marginBottom: '20px'
+                    }
+                }, [
+                    React.createElement('h2', {
+                        key: 'setup-title',
+                        style: { marginBottom: '20px', fontSize: '20px' }
+                    }, 'クイズ設定'),
+
+                    React.createElement('div', {
+                        key: 'category',
+                        style: { marginBottom: '20px', textAlign: 'left' }
+                    }, [
+                        React.createElement('label', {
+                            key: 'category-label',
+                            style: { 
+                                display: 'block', 
+                                marginBottom: '8px',
+                                fontWeight: 'bold'
+                            }
+                        }, '分野を選択:'),
+                        React.createElement('select', {
+                            key: 'category-select',
+                            value: category,
+                            onChange: (e) => setCategory(e.target.value),
+                            style: {
+                                width: '100%',
+                                padding: '10px',
+                                fontSize: '16px',
+                                border: '2px solid #ddd',
+                                borderRadius: '6px'
+                            }
+                        }, [
+                            React.createElement('option', { key: 'all', value: '' }, 'すべての分野'),
+                            React.createElement('option', { key: 'geo', value: '地理' }, '地理'),
+                            React.createElement('option', { key: 'his', value: '歴史' }, '歴史'),
+                            React.createElement('option', { key: 'civ', value: '公民' }, '公民')
+                        ])
+                    ]),
+
+                    React.createElement('div', {
+                        key: 'difficulty',
+                        style: { marginBottom: '20px', textAlign: 'left' }
+                    }, [
+                        React.createElement('label', {
+                            key: 'difficulty-label',
+                            style: { 
+                                display: 'block', 
+                                marginBottom: '8px',
+                                fontWeight: 'bold'
+                            }
+                        }, '難易度を選択:'),
+                        React.createElement('select', {
+                            key: 'difficulty-select',
+                            value: difficulty,
+                            onChange: (e) => setDifficulty(e.target.value),
+                            style: {
+                                width: '100%',
+                                padding: '10px',
+                                fontSize: '16px',
+                                border: '2px solid #ddd',
+                                borderRadius: '6px'
+                            }
+                        }, [
+                            React.createElement('option', { key: 'all', value: '' }, 'すべての難易度'),
+                            React.createElement('option', { key: 'basic', value: 'basic' }, '基本'),
+                            React.createElement('option', { key: 'standard', value: 'standard' }, '標準'),
+                            React.createElement('option', { key: 'advanced', value: 'advanced' }, '発展')
+                        ])
+                    ]),
+
+                    React.createElement('div', {
+                        key: 'count',
+                        style: { marginBottom: '30px', textAlign: 'left' }
+                    }, [
+                        React.createElement('label', {
+                            key: 'count-label',
+                            style: { 
+                                display: 'block', 
+                                marginBottom: '8px',
+                                fontWeight: 'bold'
+                            }
+                        }, `問題数: ${questionCount}問`),
+                        React.createElement('input', {
+                            key: 'count-input',
+                            type: 'range',
+                            min: '3',
+                            max: '10',
+                            value: questionCount,
+                            onChange: (e) => setQuestionCount(parseInt(e.target.value)),
+                            style: { width: '100%' }
+                        }),
+                        React.createElement('div', {
+                            key: 'count-range',
+                            style: { 
+                                display: 'flex', 
+                                justifyContent: 'space-between',
+                                fontSize: '12px',
+                                color: '#666',
+                                marginTop: '5px'
+                            }
+                        }, [
+                            React.createElement('span', { key: 'min' }, '3問'),
+                            React.createElement('span', { key: 'max' }, '10問')
+                        ])
+                    ]),
+
+                    React.createElement('button', {
+                        key: 'start-button',
+                        onClick: handleStart,
+                        style: {
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            padding: '15px 30px',
+                            fontSize: '18px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            width: '100%'
+                        }
+                    }, 'クイズを開始する')
+                ]),
+
+                React.createElement('div', {
+                    key: 'description',
+                    style: { 
+                        fontSize: '14px', 
+                        color: '#666',
+                        lineHeight: '1.5'
+                    }
+                }, [
+                    '小学6年生向けの中学受験対策問題です。',
+                    React.createElement('br', { key: 'br' }),
+                    '地理・歴史・公民の各分野から出題されます。'
+                ])
+            ]);
+        }
+
+        // 問題カードコンポーネント
+        function QuestionCard({ question, currentAnswer, onAnswerChange, questionNumber, totalQuestions }) {
+            const getDifficultyColor = (difficulty) => {
+                switch (difficulty) {
+                    case 'basic': return '#4CAF50';
+                    case 'standard': return '#FF9800';
+                    case 'advanced': return '#F44336';
+                    default: return '#999';
+                }
+            };
+
+            const getDifficultyText = (difficulty) => {
+                switch (difficulty) {
+                    case 'basic': return '基本';
+                    case 'standard': return '標準';
+                    case 'advanced': return '発展';
+                    default: return '';
+                }
+            };
+
+            const renderAnswerInput = () => {
+                switch (question.type) {
+                    case 'multiple-choice':
+                        return question.options.map((option, index) => 
+                            React.createElement('label', {
+                                key: index,
+                                style: {
+                                    display: 'block',
+                                    margin: '10px 0',
+                                    padding: '10px',
+                                    border: '2px solid #ddd',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    backgroundColor: currentAnswer === index ? '#e3f2fd' : 'white',
+                                    borderColor: currentAnswer === index ? '#2196F3' : '#ddd'
+                                }
+                            }, [
+                                React.createElement('input', {
+                                    key: 'radio',
+                                    type: 'radio',
+                                    name: `question-${question.id}`,
+                                    checked: currentAnswer === index,
+                                    onChange: () => onAnswerChange(index),
+                                    style: { marginRight: '10px' }
+                                }),
+                                option
+                            ])
+                        );
+
+                    case 'fill-in-blank':
+                        return React.createElement('input', {
+                            type: 'text',
+                            value: currentAnswer || '',
+                            onChange: (e) => onAnswerChange(e.target.value),
+                            placeholder: '答えを入力してください',
+                            style: {
+                                width: '100%',
+                                padding: '12px',
+                                fontSize: '16px',
+                                border: '2px solid #ddd',
+                                borderRadius: '6px',
+                                marginTop: '10px'
+                            }
+                        });
+
+                    case 'true-false':
+                        return React.createElement('div', {
+                            style: { display: 'flex', gap: '20px', marginTop: '10px' }
+                        }, [
+                            React.createElement('label', {
+                                key: 'true',
+                                style: {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '10px 20px',
+                                    border: '2px solid #ddd',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    backgroundColor: currentAnswer === 1 ? '#e8f5e8' : 'white',
+                                    borderColor: currentAnswer === 1 ? '#4CAF50' : '#ddd'
+                                }
+                            }, [
+                                React.createElement('input', {
+                                    key: 'radio',
+                                    type: 'radio',
+                                    name: `question-${question.id}`,
+                                    checked: currentAnswer === 1,
+                                    onChange: () => onAnswerChange(1),
+                                    style: { marginRight: '8px' }
+                                }),
+                                '正しい'
+                            ]),
+                            React.createElement('label', {
+                                key: 'false',
+                                style: {
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '10px 20px',
+                                    border: '2px solid #ddd',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    backgroundColor: currentAnswer === 0 ? '#ffe8e8' : 'white',
+                                    borderColor: currentAnswer === 0 ? '#F44336' : '#ddd'
+                                }
+                            }, [
+                                React.createElement('input', {
+                                    key: 'radio',
+                                    type: 'radio',
+                                    name: `question-${question.id}`,
+                                    checked: currentAnswer === 0,
+                                    onChange: () => onAnswerChange(0),
+                                    style: { marginRight: '8px' }
+                                }),
+                                '間違い'
+                            ])
+                        ]);
+
+                    default:
+                        return null;
+                }
+            };
+
+            return React.createElement('div', {
+                style: {
+                    maxWidth: '600px',
+                    margin: '0 auto',
+                    padding: '20px',
+                    border: '1px solid #ddd',
+                    borderRadius: '10px',
+                    backgroundColor: 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }
+            }, [
+                React.createElement('div', {
+                    key: 'header',
+                    style: { 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        marginBottom: '20px'
+                    }
+                }, [
+                    React.createElement('div', { key: 'info' }, [
+                        React.createElement('span', {
+                            key: 'difficulty',
+                            style: {
+                                backgroundColor: getDifficultyColor(question.difficulty),
+                                color: 'white',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                marginRight: '10px'
+                            }
+                        }, getDifficultyText(question.difficulty)),
+                        React.createElement('span', {
+                            key: 'category',
+                            style: { fontSize: '14px', color: '#666' }
+                        }, `${question.category} - ${question.subcategory}`)
+                    ]),
+                    React.createElement('div', {
+                        key: 'progress',
+                        style: { fontSize: '14px', color: '#666' }
+                    }, `問題 ${questionNumber} / ${totalQuestions}`)
+                ]),
+
+                React.createElement('div', {
+                    key: 'question',
+                    style: { 
+                        fontSize: '18px', 
+                        fontWeight: 'bold', 
+                        marginBottom: '20px',
+                        lineHeight: '1.5'
+                    }
+                }, question.question),
+
+                React.createElement('div', { key: 'answers' }, renderAnswerInput()),
+
+                React.createElement('div', {
+                    key: 'points',
+                    style: { 
+                        marginTop: '20px', 
+                        textAlign: 'right',
+                        fontSize: '14px',
+                        color: '#666'
+                    }
+                }, `配点: ${question.points}点`)
+            ]);
+        }
+
+        // 進捗バーコンポーネント
+        function ProgressBar({ progress, currentQuestion, totalQuestions }) {
+            return React.createElement('div', {
+                style: { 
+                    marginBottom: '20px',
+                    padding: '0 20px'
+                }
+            }, [
+                React.createElement('div', {
+                    key: 'info',
+                    style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                    }
+                }, [
+                    React.createElement('span', {
+                        key: 'label',
+                        style: { fontSize: '14px', color: '#666' }
+                    }, '進捗'),
+                    React.createElement('span', {
+                        key: 'count',
+                        style: { fontSize: '14px', color: '#666' }
+                    }, `${currentQuestion} / ${totalQuestions}`)
+                ]),
+                
+                React.createElement('div', {
+                    key: 'bar-container',
+                    style: {
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e0e0e0',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                    }
+                }, React.createElement('div', {
+                    style: {
+                        width: `${progress}%`,
+                        height: '100%',
+                        backgroundColor: '#4CAF50',
+                        borderRadius: '4px',
+                        transition: 'width 0.3s ease'
+                    }
+                }))
+            ]);
+        }
+
+        // 結果表示コンポーネント（簡略版）
+        function QuizResult({ result, questions, onRestart }) {
+            const [showOnlyIncorrect, setShowOnlyIncorrect] = useState(false);
+
+            const getScoreColor = (percentage) => {
+                if (percentage >= 80) return '#4CAF50';
+                if (percentage >= 60) return '#FF9800';
+                return '#F44336';
+            };
+
+            const getAnswerText = (question, answer) => {
+                if (answer === null) return '未回答';
+                
+                if (question.type === 'multiple-choice' && question.options) {
+                    return question.options[answer];
+                }
+                
+                if (question.type === 'true-false') {
+                    return answer === 1 ? '正しい' : '間違い';
+                }
+                
+                return String(answer);
+            };
+
+            return React.createElement('div', {
+                style: { maxWidth: '800px', margin: '0 auto', padding: '20px' }
+            }, [
+                React.createElement('div', {
+                    key: 'summary',
+                    style: { 
+                        textAlign: 'center', 
+                        marginBottom: '30px',
+                        padding: '20px',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '10px'
+                    }
+                }, [
+                    React.createElement('h2', { key: 'title' }, 'クイズ結果'),
+                    React.createElement('div', {
+                        key: 'score',
+                        style: { 
+                            fontSize: '48px', 
+                            fontWeight: 'bold', 
+                            color: getScoreColor(result.percentage),
+                            margin: '10px 0'
+                        }
+                    }, `${result.score}/${result.maxScore}`),
+                    React.createElement('div', {
+                        key: 'percentage',
+                        style: { fontSize: '24px', marginBottom: '10px' }
+                    }, `正答率: ${result.percentage}%`),
+                    React.createElement('div', {
+                        key: 'correct',
+                        style: { fontSize: '18px' }
+                    }, `${result.correctAnswers}/${result.totalQuestions} 問正解`)
+                ]),
+
+                React.createElement('div', {
+                    key: 'details',
+                    style: { marginBottom: '30px' }
+                }, [
+                    React.createElement('div', {
+                        key: 'filter-header',
+                        style: { 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '20px'
+                        }
+                    }, [
+                        React.createElement('h3', { key: 'title' }, '詳細結果'),
+                        React.createElement('div', {
+                            key: 'buttons',
+                            style: { display: 'flex', gap: '10px' }
+                        }, [
+                            React.createElement('button', {
+                                key: 'all',
+                                onClick: () => setShowOnlyIncorrect(false),
+                                style: {
+                                    backgroundColor: !showOnlyIncorrect ? '#2196F3' : '#e0e0e0',
+                                    color: !showOnlyIncorrect ? 'white' : '#666',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px'
+                                }
+                            }, 'すべて表示'),
+                            React.createElement('button', {
+                                key: 'incorrect',
+                                onClick: () => setShowOnlyIncorrect(true),
+                                style: {
+                                    backgroundColor: showOnlyIncorrect ? '#F44336' : '#e0e0e0',
+                                    color: showOnlyIncorrect ? 'white' : '#666',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px'
+                                }
+                            }, '不正解のみ表示')
+                        ])
+                    ]),
+
+                    showOnlyIncorrect && React.createElement('div', {
+                        key: 'review-tip',
+                        style: {
+                            backgroundColor: '#fff3cd',
+                            border: '1px solid #ffeaa7',
+                            borderRadius: '6px',
+                            padding: '10px',
+                            marginBottom: '15px',
+                            fontSize: '14px'
+                        }
+                    }, '💡 復習ポイント: 不正解だった問題の解説をしっかり読んで、理解を深めましょう。'),
+
+                    ...result.results
+                        .filter(resultItem => showOnlyIncorrect ? !resultItem.isCorrect : true)
+                        .map((resultItem, index) => {
+                            const question = questions.find(q => q.id === resultItem.questionId);
+                            if (!question) return null;
+                            const originalIndex = result.results.findIndex(r => r.questionId === resultItem.questionId);
+
+                            return React.createElement('div', {
+                                key: resultItem.questionId,
+                                style: {
+                                    border: '1px solid #ddd',
+                                    borderRadius: '8px',
+                                    margin: '10px 0',
+                                    padding: '15px',
+                                    backgroundColor: resultItem.isCorrect ? '#e8f5e8' : '#ffe8e8'
+                                }
+                            }, [
+                                React.createElement('div', {
+                                    key: 'header',
+                                    style: { 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        marginBottom: '10px' 
+                                    }
+                                }, [
+                                    React.createElement('span', {
+                                        key: 'status',
+                                        style: { 
+                                            backgroundColor: resultItem.isCorrect ? '#4CAF50' : '#F44336',
+                                            color: 'white',
+                                            padding: '4px 8px',
+                                            borderRadius: '4px',
+                                            fontSize: '12px',
+                                            marginRight: '10px'
+                                        }
+                                    }, resultItem.isCorrect ? '正解' : '不正解'),
+                                    React.createElement('span', {
+                                        key: 'info',
+                                        style: { fontSize: '14px', color: '#666' }
+                                    }, `問題 ${originalIndex + 1} - ${question.category} (${question.difficulty})`)
+                                ]),
+                                
+                                React.createElement('div', {
+                                    key: 'question',
+                                    style: { marginBottom: '10px', fontWeight: 'bold' }
+                                }, question.question),
+                                
+                                React.createElement('div', {
+                                    key: 'user-answer',
+                                    style: { marginBottom: '5px' }
+                                }, ['あなたの回答: ', getAnswerText(question, resultItem.userAnswer)]),
+                                
+                                React.createElement('div', {
+                                    key: 'correct-answer',
+                                    style: { marginBottom: '10px' }
+                                }, ['正解: ', getAnswerText(question, resultItem.correctAnswer)]),
+                                
+                                React.createElement('div', {
+                                    key: 'explanation',
+                                    style: { 
+                                        backgroundColor: resultItem.isCorrect ? '#f0f8f0' : '#fff8f0', 
+                                        padding: '10px', 
+                                        borderRadius: '4px',
+                                        fontSize: '14px',
+                                        border: resultItem.isCorrect ? '1px solid #d4edda' : '1px solid #ffeaa7'
+                                    }
+                                }, ['解説: ', question.explanation])
+                            ]);
+                        })
+                ]),
+
+                React.createElement('div', {
+                    key: 'restart',
+                    style: { textAlign: 'center' }
+                }, React.createElement('button', {
+                    onClick: onRestart,
+                    style: {
+                        backgroundColor: '#2196F3',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 24px',
+                        fontSize: '16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                    }
+                }, 'もう一度挑戦する'))
+            ]);
+        }
+
+        // メインアプリコンポーネント
+        function App() {
+            const {
+                currentSession,
+                currentQuestionIndex,
+                startQuiz,
+                answerQuestion,
+                nextQuestion,
+                previousQuestion,
+                finishQuiz,
+                getCurrentQuestion,
+                isLastQuestion,
+                isFirstQuestion,
+                progress
+            } = useQuiz();
+
+            const [quizResult, setQuizResult] = useState(null);
+            const [completedQuestions, setCompletedQuestions] = useState([]);
+
+            const handleStartQuiz = (options) => {
+                setQuizResult(null);
+                setCompletedQuestions([]);
+                startQuiz(options);
+            };
+
+            const handleFinishQuiz = () => {
+                if (currentSession) {
+                    setCompletedQuestions(currentSession.questions);
+                }
+                const result = finishQuiz();
+                if (result) {
+                    setQuizResult(result);
+                }
+            };
+
+            const handleRestart = () => {
+                setQuizResult(null);
+                setCompletedQuestions([]);
+            };
+
+            const currentQuestion = getCurrentQuestion();
+
+            if (quizResult) {
+                return React.createElement('div', {
+                    style: { minHeight: '100vh', backgroundColor: '#f5f5f5', padding: '20px' }
+                }, React.createElement(QuizResult, {
+                    result: quizResult,
+                    questions: completedQuestions,
+                    onRestart: handleRestart
+                }));
+            }
+
+            if (!currentSession || !currentQuestion) {
+                return React.createElement('div', {
+                    style: { minHeight: '100vh', backgroundColor: '#f5f5f5', padding: '20px' }
+                }, React.createElement(QuizSetup, {
+                    onStartQuiz: handleStartQuiz
+                }));
+            }
+
+            return React.createElement('div', {
+                style: { minHeight: '100vh', backgroundColor: '#f5f5f5', padding: '20px' }
+            }, [
+                React.createElement(ProgressBar, {
+                    key: 'progress',
+                    progress: progress,
+                    currentQuestion: currentQuestionIndex + 1,
+                    totalQuestions: currentSession.questions.length
+                }),
+
+                React.createElement(QuestionCard, {
+                    key: 'question',
+                    question: currentQuestion,
+                    currentAnswer: currentSession.answers[currentQuestionIndex],
+                    onAnswerChange: answerQuestion,
+                    questionNumber: currentQuestionIndex + 1,
+                    totalQuestions: currentSession.questions.length
+                }),
+
+                React.createElement('div', {
+                    key: 'controls',
+                    style: {
+                        maxWidth: '600px',
+                        margin: '20px auto',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }
+                }, [
+                    React.createElement('button', {
+                        key: 'prev',
+                        onClick: previousQuestion,
+                        disabled: isFirstQuestion,
+                        style: {
+                            backgroundColor: isFirstQuestion ? '#ccc' : '#757575',
+                            color: 'white',
+                            border: 'none',
+                            padding: '10px 20px',
+                            borderRadius: '6px',
+                            cursor: isFirstQuestion ? 'not-allowed' : 'pointer'
+                        }
+                    }, '前の問題'),
+
+                    React.createElement('div', {
+                        key: 'status',
+                        style: { fontSize: '14px', color: '#666' }
+                    }, currentSession.answers[currentQuestionIndex] !== null ? '回答済み' : '未回答'),
+
+                    isLastQuestion ? 
+                        React.createElement('button', {
+                            key: 'finish',
+                            onClick: handleFinishQuiz,
+                            style: {
+                                backgroundColor: '#F44336',
+                                color: 'white',
+                                border: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                            }
+                        }, '結果を見る') :
+                        React.createElement('button', {
+                            key: 'next',
+                            onClick: nextQuestion,
+                            style: {
+                                backgroundColor: '#2196F3',
+                                color: 'white',
+                                border: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                            }
+                        }, '次の問題')
+                ])
+            ]);
+        }
+
+        // アプリをレンダリング
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
 </html>
